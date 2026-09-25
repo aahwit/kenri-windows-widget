@@ -30,7 +30,7 @@ KENRI Desktop Companion
 │   ├── Identity
 │   ├── Avatar
 │   ├── Personality
-│   ├── Chat
+│   ├── Chat / Voice
 │   ├── Cloud Provider abstraction
 │   ├── Device capability abstraction
 │   └── Settings
@@ -76,14 +76,12 @@ Requirements:
 
 - Transparent, frameless presentation
 - Always-on-top option
-- Drag position
-- Remember last position
+- Drag position and remember last position
 - Multi-monitor operation
-- Quick controls
-- Quick Chat
-- Voice entry point
-- Settings
-- Hide/show behavior
+- Quick controls and Quick Chat
+- Voice conversation
+- Camera/Vision session
+- Settings and hide/show behavior
 - System Tray on Windows / Menu Bar on macOS
 - Transparent areas should not unnecessarily block applications underneath
 - Visible avatar/control regions remain interactive and draggable
@@ -98,12 +96,13 @@ Default mode. Shows the Companion avatar with minimal or auto-hidden controls.
 ### 5.2 Quick Controls
 
 - Chat
-- Voice
+- Voice / Microphone
+- Camera / Vision
 - Menu / Settings
 
 ### 5.3 Quick Chat
 
-Compact conversation panel opened from the avatar.
+Compact conversation panel opened from the avatar. It supports text and can show voice/Vision status when those capabilities are active.
 
 ```text
 +----------------------------+
@@ -144,9 +143,9 @@ Setup
 │   ├── API Key / Credential
 │   └── Test Connection
 ├── Devices
-│   ├── Camera
-│   ├── Microphone
-│   └── Speaker
+│   ├── Camera + Test Camera
+│   ├── Microphone + Test Microphone
+│   └── Speaker + Test Speaker
 └── Desktop
     ├── Start with OS
     ├── Always on top
@@ -233,26 +232,16 @@ Initial provider abstraction should support:
 - OpenAI
 - Claude (Anthropic)
 - Gemini
-- Qwen (Alibaba Cloud Model Studio / official supported cloud API)
+- Qwen (official supported cloud API)
 - DeepSeek (official supported cloud API)
 
-OpenRouter is not an initial customer-facing provider.
-
-The cloud provider list must remain extensible. Provider adapters must keep provider-specific endpoint, authentication, model naming, and request-format differences behind the provider abstraction.
+OpenRouter is not an initial customer-facing provider. The cloud provider list must remain extensible. Provider adapters keep endpoint, authentication, model naming, and request-format differences behind the provider abstraction.
 
 ## 9. Test Connection
 
 A **Test Connection** button is required. It must use the selected provider and currently entered credential, perform a real connectivity/authentication check without requiring Save first, and return a human-readable result.
 
-Examples:
-
-```text
-Connection successful
-Invalid API key
-Server unreachable
-Provider unavailable
-Model unavailable
-```
+Examples: `Connection successful`, `Invalid API key`, `Server unreachable`, `Provider unavailable`, `Model unavailable`.
 
 ## 10. Credential security
 
@@ -263,23 +252,48 @@ Use OS-backed secure credential storage:
 - Windows: secure Windows credential storage
 - macOS: Keychain
 
-Settings may store non-secret metadata such as selected provider. Saved secrets must never be displayed in full when Settings is reopened.
+Saved secrets must never be displayed in full when Settings is reopened.
 
-## 11. Senses and device capabilities
+## 11. Senses and device capabilities — v0.1
 
-The architecture must include a capability/perception layer from the beginning, even when a capability is not fully used in v0.1.
+Camera, Microphone, and Speaker are **working v0.1 features**, not architecture-only placeholders.
 
-### Eyes
+### Eyes — Camera / Vision
 
-Camera / Vision provider
+v0.1 must support:
 
-### Ears
+- Detect available cameras
+- Select camera device
+- Enable/disable camera
+- Camera preview
+- Test Camera action
+- Explicit Vision session controlled by the user
+- Capture/provide an image to a supported Vision-capable AI path
+- Visible `Camera Active` state while the camera is active
 
-Microphone / audio input
+v0.1 does **not** continuously watch the environment by default. Continuous Vision is a future explicit opt-in capability.
 
-### Voice
+### Ears — Microphone / Speech Input
 
-Speaker / audio output
+v0.1 must support:
+
+- Detect available microphones
+- Select microphone device
+- Enable/disable microphone
+- Test Microphone action with input-level feedback
+- Capture speech for voice conversation
+- Speech-to-text or provider-supported realtime voice input
+- Visible `Listening` state while audio capture is active
+
+### Voice — Speaker / Audio Output
+
+v0.1 must support:
+
+- Detect/select available audio output where the platform allows it
+- Test Speaker action
+- Text-to-speech or provider-supported realtime voice output
+- Voice selection where supported
+- Visible `Speaking` state while Kelly is producing audio
 
 ### Future perception sources
 
@@ -296,7 +310,9 @@ The KENRI brain should consume capabilities through abstractions so a future phy
 
 ## 12. Permissions and onboarding
 
-During onboarding, explain that the Companion can use Camera, Microphone, and Speaker capabilities. Actual access must follow operating-system permission/security mechanisms and must not bypass OS permissions.
+During first-run onboarding, explain that the Companion uses **Camera, Microphone, and Speaker** for Vision and voice conversation.
+
+Actual access must follow operating-system permission/security mechanisms and must not bypass OS permissions. Camera and microphone permission should be requested through the OS when appropriate. Speaker availability is detected/configured even though it normally does not use the same privacy permission flow.
 
 ```text
 Devices
@@ -306,11 +322,11 @@ Microphone   Allowed
 Speaker      Available
 ```
 
-Users can disable available capabilities from Settings. Speaker/audio output normally does not require the same privacy permission prompt as camera or microphone but remains detectable/configurable.
+Users can disable Camera, Microphone, or Voice output from Settings.
 
 ## 13. Privacy indicators
 
-Sensor use must be visible to the user.
+Sensor use must always be visible to the user.
 
 ```text
 Listening
@@ -318,13 +334,14 @@ Camera Active
 Speaking
 ```
 
-Camera and microphone must not silently activate without user-visible state/OS indication. Future always-listening or wake-word functionality requires explicit opt-in.
+Camera and microphone must not silently activate without user-visible state/OS indication.
+
+v0.1 camera use is session/user initiated. Always-listening, wake-word, and continuous Vision functionality require explicit opt-in and are outside the default v0.1 behavior.
 
 ## 14. Windows integration
 
 - Windows 11
-- Transparent window
-- Frameless avatar window
+- Transparent frameless avatar window
 - Always-on-top option
 - Drag and remember position
 - Multi-monitor support
@@ -333,6 +350,8 @@ Camera and microphone must not silently activate without user-visible state/OS i
 - Minimize/hide to Tray
 - Configurable global shortcut
 - Secure credential storage
+- Native Camera/Microphone access and permissions
+- Speaker/audio output
 - Installer packaging
 
 Proposed default shortcut: `Ctrl + Alt + K`, user-configurable to avoid conflicts.
@@ -359,7 +378,9 @@ macOS must be considered from v0.1 even if Windows ships first.
 - macOS Keychain
 - Native Camera permission handling
 - Native Microphone permission handling
-- Audio output support
+- Camera preview/Vision support
+- Microphone voice input
+- Speaker/audio output
 - Configurable global shortcut
 - APP/DMG packaging
 - Code signing and notarization for production distribution
@@ -374,18 +395,13 @@ Companion Core
       +-- CredentialStore
       |     +-- WindowsCredentialStore
       |     +-- MacKeychainStore
-      |
       +-- AutoStart
-      |     +-- WindowsAutoStart
-      |     +-- MacLaunchAtLogin
-      |
       +-- BackgroundMenu
-      |     +-- WindowsTray
-      |     +-- MacMenuBar
-      |
       +-- CameraProvider
       +-- MicrophoneProvider
+      +-- SpeechInputProvider
       +-- AudioOutputProvider
+      +-- TextToSpeechProvider
       +-- GlobalShortcutProvider
       +-- WindowPositionStore
 ```
@@ -397,35 +413,23 @@ This separation is a design requirement.
 The Desktop Companion should not duplicate the full KENRI backend and must not expose a customer-facing local AI execution path.
 
 ```text
-Desktop Companion
-       |
-       +-- Identity / Avatar / local UI
-       +-- Device capabilities
-       +-- Secure cloud-provider credentials
-       |
-       v
-KENRI / Selected Cloud AI Provider
-       |
-       +-- LLM
-       +-- RAG / Knowledge
-       +-- Personality
-       +-- Agent
-       +-- Skill / Tools
+Camera ─────┐
+Microphone ─┼──> Desktop Companion ──> KENRI / Selected Cloud AI Provider
+Text ───────┘                              |
+                                             +-- LLM / Vision / Voice
+                                             +-- RAG / Knowledge
+                                             +-- Personality
+                                             +-- Agent
+                                             +-- Skill / Tools
+                                             |
+Speaker <──────────── Voice response <───────+
 ```
 
-Direct cloud-provider mode may provide LLM chat only. KENRI-specific services such as Knowledge, RAG, Agents, Skills, Bot configuration, or account data may still require a KENRI service connection. Provider selection and KENRI service connection remain conceptually separable.
+Direct cloud-provider mode may provide only the capabilities supported by that provider. KENRI-specific services such as Knowledge, RAG, Agents, Skills, Bot configuration, or account data may still require a KENRI service connection.
 
 ## 18. Future physical embodiment
 
-The desktop is not assumed to be the final body.
-
-Future bodies may include:
-
-- ESP32 companion hardware
-- Camera-equipped companion
-- Speaker/microphone device
-- Mobile device
-- Physical robot
+The desktop is not assumed to be the final body. Future bodies may include ESP32 companion hardware, camera-equipped companion devices, mobile devices, and a physical robot.
 
 The long-term objective is that Kelly on Windows/macOS and Kelly in physical hardware can represent the same identity rather than separate AI personalities.
 
@@ -436,7 +440,8 @@ The long-term objective is that Kelly on Windows/macOS and Kelly in physical har
              |         |         |
           Windows    macOS     Physical
              |         |         |
-           Screen    Screen    Camera/Mic
+         Cam/Mic/    Cam/Mic/   Camera/Mic/
+         Speaker     Speaker    Sensors
              +---------+---------+
                        |
                    KENRI Brain
@@ -451,6 +456,14 @@ The long-term objective is that Kelly on Windows/macOS and Kelly in physical har
 - Drag and remember position
 - Quick Controls
 - Text Quick Chat
+- **Voice conversation**
+- **Microphone input**
+- **Speech-to-text or realtime voice input**
+- **Text-to-speech / voice response through speaker**
+- **Camera selection and preview**
+- **User-initiated Camera/Vision session**
+- **Test Camera / Test Microphone / Test Speaker**
+- **Visible Camera Active / Listening / Speaking indicators**
 - Setup / Settings menu
 - Custom name
 - Custom avatar image
@@ -462,7 +475,6 @@ The long-term objective is that Kelly on Windows/macOS and Kelly in physical har
 - System Tray
 - Start with Windows
 - Configurable global shortcut
-- Camera/Microphone/Speaker capability architecture
 - Device permission/status UI
 - macOS-ready platform abstractions
 
@@ -472,22 +484,21 @@ macOS does not have to ship simultaneously with the first Windows MVP, but no co
 
 ### v0.2
 
-- Voice conversation
-- Microphone input
-- Text-to-speech
 - Animated avatar states
 - Drag/drop files and images
-- Streaming responses
-
-### v0.3
-
-- Camera/Vision
+- Improved streaming/realtime interaction
+- Additional voice/provider optimizations
 - Screen perception
 - Selected-text actions
 - Clipboard integration
+
+### v0.3
+
+- Wake word / explicit always-listening mode
+- Continuous Vision as explicit opt-in
 - Context menu integration
-- Wake word
 - Agent notifications
+- Deeper desktop awareness
 
 ### Future
 
@@ -500,6 +511,6 @@ macOS does not have to ship simultaneously with the first Windows MVP, but no co
 
 ## 21. Product principle
 
-KENRI Desktop Companion should feel like a persistent character with an identity, personality, senses, and abilities — not merely a chat window.
+KENRI Desktop Companion should feel like a persistent character with an identity, personality, **eyes, ears, voice**, and abilities — not merely a chat window.
 
 The desktop implementation is the first body, not the final destination.
