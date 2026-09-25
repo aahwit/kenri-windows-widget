@@ -1,0 +1,9 @@
+{
+  "$schema":"https://schema.tauri.app/config/2",
+  "productName":"KENRI Desktop Companion",
+  "version":"0.1.0",
+  "identifier":"com.kenri.desktop.companion",
+  "build":{"beforeDevCommand":"npm run dev","devUrl":"http://localhost:1420","beforeBuildCommand":"npm run build","frontendDist":"../dist"},
+  "app":{"windows":[{"label":"main","title":"KENRI Desktop Companion","width":430,"height":760,"resizable":true,"fullscreen":false,"decorations":false,"transparent":true,"alwaysOnTop":true,"shadow":false}],"security":{"csp":null}},
+  "bundle":{"active":true,"targets":"all","shortDescription":"Your KENRI AI companion","longDescription":"KENRI Desktop Companion for Windows and macOS"}
+}
