@@ -21,7 +21,7 @@ fn place_chat(app:&tauri::AppHandle,focus:bool)->tauri::Result<()> {
 
 fn toggle_chat_sync(app:&tauri::AppHandle)->tauri::Result<()> {let chat=ensure_chat(app)?;if chat.is_visible().unwrap_or(false){chat.hide()}else{place_chat(app,true)}}
 
-fn keep_pet_on_screen(window:&WebviewWindow,pos:PhysicalPosition<i32>){
+fn keep_pet_on_screen(window:&tauri::Window,pos:PhysicalPosition<i32>){
  if window.label()!="main"{return} let Ok(size)=window.outer_size()else{return}; let Ok(Some(mon))=window.current_monitor()else{return};
  let mp=*mon.position(); let ms=*mon.size(); let min_x=mp.x+EDGE; let min_y=mp.y+EDGE;
  let max_x=mp.x+ms.width as i32-size.width as i32-EDGE; let max_y=mp.y+ms.height as i32-size.height as i32-EDGE;
@@ -33,7 +33,6 @@ fn keep_pet_on_screen(window:&WebviewWindow,pos:PhysicalPosition<i32>){
 pub fn run(){tauri::Builder::default().setup(|app|{
  use tauri::menu::{MenuBuilder,MenuItemBuilder};use tauri::tray::TrayIconBuilder;
  if let Some(main)=app.get_webview_window("main"){let _=main.set_size(PhysicalSize::new(150,190));let _=main.set_resizable(false);let _=main.set_maximizable(false);}
- // Create the hidden chat WebView on Tauri's setup/main thread. This avoids creating a WebView from a polling worker thread.
  if let Err(e)=ensure_chat(&app.handle()){eprintln!("chat window init failed: {e}");}
  let companion=MenuItemBuilder::with_id("companion","Kelly").enabled(false).build(app)?;let show=MenuItemBuilder::with_id("show","Show").build(app)?;let talk=MenuItemBuilder::with_id("talk","Talk").build(app)?;let settings=MenuItemBuilder::with_id("settings","Settings").build(app)?;let quit=MenuItemBuilder::with_id("quit","Exit KENRI").build(app)?;
  let menu=MenuBuilder::new(app).items(&[&companion,&show,&talk,&settings,&quit]).build()?;let mut tray=TrayIconBuilder::new().menu(&menu).tooltip("Kelly — KENRI Desktop Companion");if let Some(icon)=app.default_window_icon(){tray=tray.icon(icon.clone());}
