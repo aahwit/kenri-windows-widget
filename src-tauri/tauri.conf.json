@@ -4,6 +4,6 @@
   "version":"0.1.0",
   "identifier":"com.kenri.desktop.companion",
   "build":{"beforeDevCommand":"npm run dev","devUrl":"http://localhost:1420","beforeBuildCommand":"npm run build","frontendDist":"../dist"},
-  "app":{"windows":[{"label":"main","title":"KENRI Desktop Companion","width":430,"height":760,"resizable":true,"fullscreen":false,"decorations":false,"transparent":true,"alwaysOnTop":true,"shadow":false}],"security":{"csp":null}},
+  "app":{"windows":[{"label":"main","title":"KENRI Desktop Companion","width":430,"height":760,"resizable":true,"maximizable":false,"fullscreen":false,"decorations":false,"transparent":true,"noRedirectionBitmap":true,"alwaysOnTop":true,"shadow":false}],"security":{"csp":null}},
   "bundle":{"active":true,"targets":"all","icon":["icons/32x32.png","icons/128x128.png","icons/128x128@2x.png","icons/icon.ico","icons/icon.icns"],"shortDescription":"Your KENRI AI companion","longDescription":"KENRI Desktop Companion for Windows and macOS"}
 }
