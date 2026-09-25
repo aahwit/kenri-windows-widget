@@ -36,13 +36,13 @@ pub fn run(){
  tauri::Builder::default().setup(|app|{
   use tauri::menu::{MenuBuilder,MenuItemBuilder}; use tauri::tray::TrayIconBuilder;
   if let Some(main)=app.get_webview_window("main"){let _=main.set_size(PhysicalSize::new(150,190));}
-  // Pre-create the hidden chat webview during setup. Creating a webview from a frontend invoke
-  // can block the Windows UI thread; commands below only position/show this existing window.
-  let _=ensure_chat(&app.handle()).map_err(|e|tauri::Error::Setup(e.into()))?;
+  // Pre-create the hidden chat webview during setup. Keep setup alive even if this optional
+  // window cannot be created; show_chat will return the actual error instead of killing startup.
+  if let Err(error)=ensure_chat(&app.handle()) { eprintln!("failed to pre-create chat window: {error}"); }
   let companion=MenuItemBuilder::with_id("companion","Kelly").enabled(false).build(app)?;
   let show=MenuItemBuilder::with_id("show","Show").build(app)?;let talk=MenuItemBuilder::with_id("talk","Talk").build(app)?;let settings=MenuItemBuilder::with_id("settings","Settings").build(app)?;let quit=MenuItemBuilder::with_id("quit","Exit KENRI").build(app)?;
   let menu=MenuBuilder::new(app).items(&[&companion,&show,&talk,&settings,&quit]).build()?;let mut tray=TrayIconBuilder::new().menu(&menu).tooltip("Kelly — KENRI Desktop Companion");if let Some(icon)=app.default_window_icon(){tray=tray.icon(icon.clone());}
-  tray.on_menu_event(|app,event|match event.id.as_ref(){"show"=>if let Some(w)=app.get_webview_window("main"){let _=w.show();let _=w.set_focus();},"talk"=>{if let Some(w)=app.get_webview_window("main"){let _=w.show();}let _=place_chat(app);},"settings"=>if let Some(w)=app.get_webview_window("main"){let _=w.show();let _=w.set_focus();let _=app.emit("open-settings",());},"quit"=>app.exit(0),_=>{}}).build(app)?;Ok(())
+  tray.on_menu_event(|app,event|match event.id.as_ref(){"show"=>if let Some(w)=app.get_webview_window("main"){let _=w.show();let _=w.set_focus();},"talk"=>{if let Some(w)=app.get_webview_window("main"){let _=w.show();}if let Err(error)=place_chat(app){eprintln!("failed to show chat window: {error}");}},"settings"=>if let Some(w)=app.get_webview_window("main"){let _=w.show();let _=w.set_focus();let _=app.emit("open-settings",());},"quit"=>app.exit(0),_=>{}}).build(app)?;Ok(())
  }).invoke_handler(tauri::generate_handler![show_chat,hide_chat]).on_window_event(|window,event|{if let tauri::WindowEvent::CloseRequested{api,..}=event{api.prevent_close();let _=window.hide();}}).run(tauri::generate_context!()).expect("error while running KENRI Desktop Companion");
 }
 #[tauri::command] async fn show_chat(app:tauri::AppHandle)->Result<(),String>{place_chat(&app)}
