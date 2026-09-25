@@ -1,0 +1,1 @@
+fn main() { kenri_desktop_companion_lib::run(); }
