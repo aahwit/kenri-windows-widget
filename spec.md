@@ -135,9 +135,46 @@ Example:
 
 Closing Quick Chat should return to Avatar Mode rather than terminate the application.
 
-### 5.4 Full KENRI
+### 5.4 Setup Menu
 
-Complex tasks may be handed off to the full KENRI interface when appropriate.
+The fourth presentation surface is the Companion **Setup / Settings menu**, not a Full KENRI window.
+
+The Desktop Companion should remain a focused standalone companion. It must not require a presentation mode whose purpose is simply to open or reproduce the full KENRI web application.
+
+Setup is opened from the `...` quick control, System Tray on Windows, or Menu Bar on macOS.
+
+Initial Setup sections:
+
+```text
+Setup
+├── Companion
+│   ├── Name
+│   ├── Avatar
+│   └── Reset to Kelly
+├── Personality
+│   ├── Personality description
+│   ├── Speaking style
+│   ├── How to address user
+│   └── Custom instructions
+├── Voice
+│   ├── Voice selection
+│   ├── Enable / Disable
+│   └── Speaking speed
+├── AI Provider
+│   ├── Provider
+│   ├── API Key / Credential
+│   ├── Model / Server URL where applicable
+│   └── Test Connection
+├── Devices
+│   ├── Camera
+│   ├── Microphone
+│   └── Speaker
+└── Desktop
+    ├── Start with OS
+    ├── Always on top
+    ├── Global shortcut
+    └── Remember position
+```
 
 ## 6. Companion Setup
 
@@ -515,7 +552,7 @@ Required for first usable release:
 - Drag and remember position
 - Quick Controls
 - Text Quick Chat
-- Settings
+- Setup / Settings menu
 - Custom name
 - Custom avatar image
 - Personality configuration
