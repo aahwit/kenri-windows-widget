@@ -231,10 +231,14 @@ Initial provider abstraction should support:
 
 - KENRI
 - OpenAI
-- OpenRouter
+- Claude (Anthropic)
 - Gemini
+- Qwen (Alibaba Cloud Model Studio / official supported cloud API)
+- DeepSeek (official supported cloud API)
 
-The cloud provider list must remain extensible.
+OpenRouter is not an initial customer-facing provider.
+
+The cloud provider list must remain extensible. Provider adapters must keep provider-specific endpoint, authentication, model naming, and request-format differences behind the provider abstraction.
 
 ## 9. Test Connection
 
