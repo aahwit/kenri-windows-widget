@@ -10,13 +10,7 @@
 
 KENRI Desktop Companion is a persistent AI companion for the desktop. It is not simply the KENRI website placed inside a small window. It provides a desktop body for a KENRI identity.
 
-Core principle:
-
 > **One Identity — Multiple Bodies**
-
-The same identity may eventually appear as a Windows companion, macOS companion, web widget, mobile client, ESP32 device, or physical robot.
-
-Conceptual model:
 
 ```text
 Identity + Avatar + Personality + Voice + Senses + AI Provider + Body = Companion
@@ -26,9 +20,9 @@ KENRI remains the brain/platform while each device provides a body and available
 
 ## 2. Cross-platform strategy
 
-The application should be designed as **KENRI Desktop Companion**, even though Windows 11 is the first implementation target.
+The product is **KENRI Desktop Companion**. Windows 11 ships first, while the architecture must support Windows and macOS from one codebase.
 
-Preferred desktop framework: **Tauri**, with shared UI/business logic and platform-specific adapters where required.
+Preferred framework: **Tauri**.
 
 ```text
 KENRI Desktop Companion
@@ -37,7 +31,7 @@ KENRI Desktop Companion
 │   ├── Avatar
 │   ├── Personality
 │   ├── Chat
-│   ├── Provider abstraction
+│   ├── Cloud Provider abstraction
 │   ├── Device capability abstraction
 │   └── Settings
 ├── Windows
@@ -52,13 +46,9 @@ KENRI Desktop Companion
     └── APP / DMG distribution
 ```
 
-Platform-specific implementation must not leak unnecessarily into Companion identity, personality, chat, or provider logic.
-
 ## 3. Default Companion — Kelly
 
-The first installation starts with a default companion named **Kelly**.
-
-Default profile:
+The first installation starts with **Kelly**.
 
 - Name: Kelly
 - Avatar: French Bulldog
@@ -67,7 +57,7 @@ Default profile:
 - Voice: male default voice
 - Avatar background: transparent
 
-Kelly is the default/example companion. The user can customize the companion and must always have an easy **Reset to Kelly** option.
+Users can customize the Companion and must always have an easy **Reset to Kelly** option.
 
 ## 4. Desktop experience
 
@@ -82,33 +72,30 @@ The primary experience is an avatar floating directly on the desktop rather than
                 +-------------+
 ```
 
-The companion should support:
+Requirements:
 
 - Transparent, frameless presentation
 - Always-on-top option
-- Dragging to another screen position
-- Remembering its last position
+- Drag position
+- Remember last position
 - Multi-monitor operation
 - Quick controls
 - Quick Chat
 - Voice entry point
 - Settings
 - Hide/show behavior
-- Background lifecycle through System Tray on Windows or Menu Bar on macOS
-
-Transparent regions should not unnecessarily block interaction with applications underneath. Visible avatar/control regions must remain interactive and draggable.
-
-DPI/scaling behavior must be tested on Windows at common scaling levels including 100%, 125%, and 150%.
+- System Tray on Windows / Menu Bar on macOS
+- Transparent areas should not unnecessarily block applications underneath
+- Visible avatar/control regions remain interactive and draggable
+- Windows DPI testing at 100%, 125%, and 150%
 
 ## 5. Presentation modes
 
 ### 5.1 Avatar Mode
 
-Default mode. Shows the companion avatar with minimal or auto-hidden controls.
+Default mode. Shows the Companion avatar with minimal or auto-hidden controls.
 
 ### 5.2 Quick Controls
-
-Initial controls:
 
 - Chat
 - Voice
@@ -116,9 +103,7 @@ Initial controls:
 
 ### 5.3 Quick Chat
 
-A compact conversation panel opened from the avatar.
-
-Example:
+Compact conversation panel opened from the avatar.
 
 ```text
 +----------------------------+
@@ -133,17 +118,11 @@ Example:
 +----------------------------+
 ```
 
-Closing Quick Chat should return to Avatar Mode rather than terminate the application.
+Closing Quick Chat returns to Avatar Mode rather than terminating the application.
 
 ### 5.4 Setup Menu
 
-The fourth presentation surface is the Companion **Setup / Settings menu**, not a Full KENRI window.
-
-The Desktop Companion should remain a focused standalone companion. It must not require a presentation mode whose purpose is simply to open or reproduce the full KENRI web application.
-
-Setup is opened from the `...` quick control, System Tray on Windows, or Menu Bar on macOS.
-
-Initial Setup sections:
+Setup is opened from the `...` quick control, Windows System Tray, or macOS Menu Bar.
 
 ```text
 Setup
@@ -163,7 +142,6 @@ Setup
 ├── AI Provider
 │   ├── Provider
 │   ├── API Key / Credential
-│   ├── Model / Server URL where applicable
 │   └── Test Connection
 ├── Devices
 │   ├── Camera
@@ -176,9 +154,9 @@ Setup
     └── Remember position
 ```
 
-## 6. Companion Setup
+The Desktop Companion is a focused standalone companion and does not need a Full KENRI presentation mode.
 
-Setup must allow users to customize their companion without editing source code.
+## 6. Companion Setup
 
 ### Identity
 
@@ -191,14 +169,12 @@ Setup must allow users to customize their companion without editing source code.
 
 - Personality description
 - Speaking style
-- How the companion addresses the user
+- How the Companion addresses the user
 - Custom instructions
 
 Personality and Avatar are independent. Changing the avatar must not erase personality configuration.
 
 ### Voice
-
-The architecture should support:
 
 - Voice selection
 - Voice enable/disable
@@ -212,13 +188,9 @@ The architecture should support:
 - Default Kelly French Bulldog avatar
 - Custom image upload
 - Transparent-background avatar support
-- Static avatar is acceptable for MVP
+- Static avatar acceptable for MVP
 
 ### Future animated avatar
-
-The avatar architecture should allow state-based animation without redesigning the Companion core.
-
-Example package:
 
 ```text
 avatar/
@@ -233,21 +205,11 @@ avatar/
 └── error.webp
 ```
 
-Candidate states:
-
-- Idle
-- Listening
-- Thinking
-- Searching
-- Working
-- Needs Input
-- Speaking
-- Success
-- Error
+Candidate states: Idle, Listening, Thinking, Searching, Working, Needs Input, Speaking, Success, Error.
 
 ## 8. AI Provider configuration
 
-Provider setup should remain simple in v0.1.
+Customers use supported **cloud AI providers only**. Local AI / Ollama is intentionally not a customer-facing option.
 
 ```text
 AI Provider
@@ -265,29 +227,18 @@ Status: Connected
                          [ Save ]
 ```
 
-Initial provider abstraction should be capable of supporting:
+Initial provider abstraction should support:
 
 - KENRI
 - OpenAI
 - OpenRouter
 - Gemini
-- Ollama / local provider
 
-The provider list must be extensible.
-
-For providers that do not use an API key, the credential form should adapt appropriately. For example, Ollama may use a Server URL and model selection.
+The cloud provider list must remain extensible.
 
 ## 9. Test Connection
 
-A **Test Connection** button is required.
-
-The test must:
-
-1. Use the currently selected provider.
-2. Use the credential currently entered in the form.
-3. Perform a real provider connectivity/authentication check.
-4. Not require Save before testing.
-5. Return a human-readable result.
+A **Test Connection** button is required. It must use the selected provider and currently entered credential, perform a real connectivity/authentication check without requiring Save first, and return a human-readable result.
 
 Examples:
 
@@ -308,27 +259,9 @@ Use OS-backed secure credential storage:
 - Windows: secure Windows credential storage
 - macOS: Keychain
 
-Settings may store non-secret metadata such as selected provider and model.
+Settings may store non-secret metadata such as selected provider. Saved secrets must never be displayed in full when Settings is reopened.
 
-When reopening Settings, a saved secret must never be displayed in full.
-
-## 11. Local AI
-
-The provider abstraction must support local AI.
-
-Example:
-
-```text
-Provider: Ollama
-Server URL: http://localhost:11434
-Model: [ Select Model ]
-
-[Test Connection]
-```
-
-Local AI support should not require a cloud API key.
-
-## 12. Senses and device capabilities
+## 11. Senses and device capabilities
 
 The architecture must include a capability/perception layer from the beginning, even when a capability is not fully used in v0.1.
 
@@ -357,15 +290,9 @@ Speaker / audio output
 
 The KENRI brain should consume capabilities through abstractions so a future physical Kelly can use different hardware without changing identity/personality logic.
 
-## 13. Permissions and onboarding
+## 12. Permissions and onboarding
 
-During onboarding, explain that the Companion can use Camera, Microphone, and Speaker capabilities.
-
-Actual access must follow operating-system permission/security mechanisms. The application must not bypass OS permissions.
-
-Where the OS requires permission at first use, request it at the appropriate point and explain why it is needed.
-
-Example device status:
+During onboarding, explain that the Companion can use Camera, Microphone, and Speaker capabilities. Actual access must follow operating-system permission/security mechanisms and must not bypass OS permissions.
 
 ```text
 Devices
@@ -375,15 +302,11 @@ Microphone   Allowed
 Speaker      Available
 ```
 
-Users must be able to disable available capabilities from Settings.
+Users can disable available capabilities from Settings. Speaker/audio output normally does not require the same privacy permission prompt as camera or microphone but remains detectable/configurable.
 
-Note: speaker/audio output normally does not require the same privacy permission prompt as camera or microphone; it should still be detected/configurable as a capability.
-
-## 14. Privacy indicators
+## 13. Privacy indicators
 
 Sensor use must be visible to the user.
-
-Examples:
 
 ```text
 Listening
@@ -391,20 +314,15 @@ Camera Active
 Speaking
 ```
 
-Camera and microphone must not silently activate without user-visible state/OS indication.
+Camera and microphone must not silently activate without user-visible state/OS indication. Future always-listening or wake-word functionality requires explicit opt-in.
 
-Future always-listening or wake-word functionality must have an explicit opt-in setting.
-
-## 15. Windows integration
-
-Initial Windows requirements:
+## 14. Windows integration
 
 - Windows 11
 - Transparent window
 - Frameless avatar window
 - Always-on-top option
-- Drag position
-- Remember position
+- Drag and remember position
 - Multi-monitor support
 - System Tray
 - Start with Windows
@@ -413,19 +331,9 @@ Initial Windows requirements:
 - Secure credential storage
 - Installer packaging
 
-Proposed default shortcut:
+Proposed default shortcut: `Ctrl + Alt + K`, user-configurable to avoid conflicts.
 
-```text
-Ctrl + Alt + K
-```
-
-The shortcut must be user-configurable to avoid conflicts.
-
-### Close behavior
-
-Closing the visible companion should normally hide it while keeping the application available from System Tray.
-
-Explicit application termination should be available from the Tray menu:
+Closing the visible Companion normally hides it while the application remains available from System Tray. Explicit termination is available from the Tray menu.
 
 ```text
 KENRI
@@ -434,20 +342,17 @@ KENRI
 └── Exit KENRI
 ```
 
-## 16. macOS integration
+## 15. macOS integration
 
-macOS must be considered in architecture from v0.1 even if Windows ships first.
-
-macOS requirements/planned equivalents:
+macOS must be considered from v0.1 even if Windows ships first.
 
 - Transparent frameless companion window
-- Floating/always-on-top behavior using supported macOS window levels
-- Drag position
-- Remember position
+- Floating/always-on-top behavior
+- Drag and remember position
 - Multiple-display support
 - Menu Bar background control
 - Launch at Login
-- macOS Keychain for API keys/secrets
+- macOS Keychain
 - Native Camera permission handling
 - Native Microphone permission handling
 - Audio output support
@@ -455,15 +360,9 @@ macOS requirements/planned equivalents:
 - APP/DMG packaging
 - Code signing and notarization for production distribution
 
-Camera and Microphone permission descriptions must be declared correctly for the macOS application bundle before distribution.
+Camera and Microphone permission descriptions must be declared correctly for the macOS application bundle.
 
-The user experience and Companion identity should remain consistent between Windows and macOS even when OS integration differs.
-
-## 17. Platform capability abstraction
-
-Platform-dependent functionality should sit behind interfaces/adapters.
-
-Conceptually:
+## 16. Platform capability abstraction
 
 ```text
 Companion Core
@@ -487,23 +386,21 @@ Companion Core
       +-- WindowPositionStore
 ```
 
-This separation is a design requirement, not an optional cleanup task.
+This separation is a design requirement.
 
-## 18. KENRI architecture relationship
+## 17. KENRI architecture relationship
 
-The Desktop Companion should not duplicate the full KENRI backend.
-
-Conceptually:
+The Desktop Companion should not duplicate the full KENRI backend and must not expose a customer-facing local AI execution path.
 
 ```text
 Desktop Companion
        |
        +-- Identity / Avatar / local UI
        +-- Device capabilities
-       +-- Secure provider credentials
+       +-- Secure cloud-provider credentials
        |
        v
-KENRI / Selected AI Provider
+KENRI / Selected Cloud AI Provider
        |
        +-- LLM
        +-- RAG / Knowledge
@@ -512,11 +409,11 @@ KENRI / Selected AI Provider
        +-- Skill / Tools
 ```
 
-Some providers may provide direct LLM chat only. KENRI-specific services such as Knowledge, RAG, Agents, Skills, Bot configuration, or account data may still require a KENRI service connection. Provider selection and KENRI service connection must therefore remain conceptually separable.
+Direct cloud-provider mode may provide LLM chat only. KENRI-specific services such as Knowledge, RAG, Agents, Skills, Bot configuration, or account data may still require a KENRI service connection. Provider selection and KENRI service connection remain conceptually separable.
 
-## 19. Future physical embodiment
+## 18. Future physical embodiment
 
-The architecture must not assume the desktop is the final body.
+The desktop is not assumed to be the final body.
 
 Future bodies may include:
 
@@ -541,9 +438,7 @@ The long-term objective is that Kelly on Windows/macOS and Kelly in physical har
                    KENRI Brain
 ```
 
-## 20. MVP scope — v0.1
-
-Required for first usable release:
+## 19. MVP scope — v0.1
 
 - Windows 11 application
 - Tauri-based cross-platform-ready architecture
@@ -556,7 +451,7 @@ Required for first usable release:
 - Custom name
 - Custom avatar image
 - Personality configuration
-- Provider selection
+- Cloud provider selection
 - API key/credential entry
 - Test Connection
 - Secure credential storage
@@ -569,7 +464,7 @@ Required for first usable release:
 
 macOS does not have to ship simultaneously with the first Windows MVP, but no core architectural decision should unnecessarily prevent it.
 
-## 21. Post-MVP roadmap
+## 20. Post-MVP roadmap
 
 ### v0.2
 
@@ -579,7 +474,6 @@ macOS does not have to ship simultaneously with the first Windows MVP, but no co
 - Animated avatar states
 - Drag/drop files and images
 - Streaming responses
-- Improved local AI support
 
 ### v0.3
 
@@ -600,7 +494,7 @@ macOS does not have to ship simultaneously with the first Windows MVP, but no co
 - Physical Kelly robot
 - Shared identity/state across multiple bodies
 
-## 22. Product principle
+## 21. Product principle
 
 KENRI Desktop Companion should feel like a persistent character with an identity, personality, senses, and abilities — not merely a chat window.
 
