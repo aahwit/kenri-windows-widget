@@ -514,3 +514,92 @@ macOS does not have to ship simultaneously with the first Windows MVP, but no co
 KENRI Desktop Companion should feel like a persistent character with an identity, personality, **eyes, ears, voice**, and abilities — not merely a chat window.
 
 The desktop implementation is the first body, not the final destination.
+
+## 22. Offline Mini Brain and KGLite associative memory (proposed)
+
+**Status:** Architecture proposal only. KGLite is not yet installed, integrated, or benchmarked. This section supersedes older assumptions that all companion intelligence must be cloud-hosted: autonomous pet behavior and its behavioral memory must work offline. KENRI remains optional for conversation, knowledge, and complex reasoning.
+
+### 22.1 Design principles
+
+- Local-first: Kelly's reflexes, emotional state, needs, learned preferences, and behavioral decisions must operate without network access.
+- Keep the existing Tauri + React + Rust widget, drag, chat bubble, settings, and avatar architecture unchanged.
+- Separate **brain computation**, **event memory**, and **associative memory**. KGLite is a candidate embedded knowledge graph for relationships, **not** a neural network, decision engine, or learning algorithm.
+- No Python runtime or always-on server should be required for the standard Windows installation.
+- All sensors, memory capture, and synchronization are explicit and privacy-aware; no automatic cloud upload of behavioral memory.
+
+### 22.2 Proposed architecture
+
+```text
+Widget Sensors / Chat Events / Clock
+                |
+          Event Adapter
+                |
+       Kelly Mini Brain (TS)
+       + Reflex / Mood / Needs
+       + Learning (contextual bandit, planned)
+       + Decision interface
+                |
+       +--------+-------------------+
+       |                            |
+ Local Event Store            Associative Memory
+ (SQLite, proposed)           (KGLite, optional)
+       |                            |
+       +---- Memory abstraction ----+
+                |
+       Behavior output (future)
+                |
+          Animation Engine
+
+ KENRI LLM/Router: optional, invoked for conversation; not a dependency
+ of offline reflexes, learning, or associative memory.
+```
+
+### 22.3 Responsibility split
+
+| Component | Responsibility | Implementation status |
+| --- | --- | --- |
+| Mini Brain core | Internal state and event dispatch | Basic `src/brain/miniBrain.ts` exists; no autonomous loop |
+| Reflex and motivation | Fast local reactions and needs | Planned |
+| Learning engine | Update action preferences from explicit/implicit feedback, with bounded exploration | Planned |
+| SQLite event store | Timestamped interaction history, reward evidence, retention | Planned |
+| KGLite graph adapter | Nodes/edges for owner, activity, time context, preference, experience, confidence, provenance | **Candidate / not integrated** |
+| Behavior adapter | Translate decisions to animation without coupling storage to UI | Planned |
+| KENRI | Optional language/reasoning service | Separate from offline brain |
+
+### 22.4 KGLite integration strategy
+
+1. **Validate** KGLite's actual Rust API, version, license, Windows/macOS build support, persistence format, concurrency behavior, and distribution size before adding a dependency.
+2. Define a storage-neutral `AssociativeMemory` interface first: `upsertEntity`, `linkEntities`, `queryRelations`, `deleteSubject`, `exportData`. Keep a no-op or in-memory adapter for fallback.
+3. If validation passes, implement a **Rust/Tauri backend adapter** for KGLite. Expose narrow, typed Tauri commands; do not let React read/write arbitrary graph files.
+4. Start with a small, local graph: `Owner -> prefers -> Interaction`, `Interaction -> occursDuring -> TimeContext`, `Event -> supports -> Preference`. Store evidence, confidence, and last-updated timestamps; avoid treating inferred preferences as facts.
+5. Keep high-volume raw events in SQLite, not as individual graph nodes by default. Derive/update graph relationships asynchronously in batches, outside latency-sensitive reflex paths.
+6. Provide migration/versioning, corruption recovery, backups, per-user isolation, deletion/reset, and retention limits. If KGLite fails, the Mini Brain must continue functioning.
+7. Compare graph retrieval with a **SQLite-only baseline**; retain KGLite only if it demonstrates measurable value for multi-hop relationship queries.
+
+### 22.5 Learning and privacy safeguards
+
+- Use a local contextual bandit as an initial learning candidate; KGLite supplies context, not rewards or learning by itself.
+- Prefer explicit positive/negative feedback over treating silence as rejection. Cap interruptions and exploration.
+- Never capture screenshots, microphone audio, clipboard, or application activity for memory without specific user permission.
+- Behavioral data remains on-device by default; offer inspection, export, reset, and deletion controls.
+- Keep persona invariants separate from learned preferences so learned behavior cannot silently rewrite the locked core persona.
+
+### 22.6 Acceptance criteria / evaluation gates
+
+- Offline operation: reflex and decision paths continue with networking disabled.
+- Baseline first: measure startup, idle CPU/RAM, event-to-decision latency, installer size, and disk usage **before and after** KGLite.
+- Graph value: demonstrate at least one useful multi-hop query that improves a real Kelly decision over the SQLite baseline.
+- Resilience: missing/corrupt graph data does not crash the widget; fallback behavior is documented and tested.
+- Data lifecycle: graph and event memory can be exported, reset, and deleted locally.
+- Build: Windows release build succeeds; macOS compatibility is checked before declaring cross-platform support.
+- No behavioral animation changes until headless brain tests and memory contracts pass.
+
+### 22.7 Incremental roadmap
+
+- **Brain v0.2:** event adapters, deterministic headless tests, observability; no animation coupling.
+- **Brain v0.3:** local learning prototype with bounded decisions and explicit feedback.
+- **Brain v0.4:** SQLite event memory, schema/versioning, retention and reset.
+- **Brain v0.5 (experimental):** KGLite adapter spike and SQLite-only comparison; feature-flagged and optional.
+- **Brain v0.6+:** graph-informed decisions if benchmarks and privacy checks pass; connect animation states gradually.
+
+**Decision:** Do not install KGLite into production by default yet. First establish a working offline learning/event-memory baseline and verify that KGLite offers measurable value.
